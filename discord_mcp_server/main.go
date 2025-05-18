@@ -1,0 +1,1 @@
+package discord_mcp_server
