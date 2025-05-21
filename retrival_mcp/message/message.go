@@ -1,4 +1,4 @@
-package messages
+package message
 
 import (
 	"github.com/Maksym-Perehinets/shared/database"
@@ -11,7 +11,7 @@ type messageService struct {
 	sessions *discordgo.Session
 }
 
-func NewMessageService(session *discordgo.Session) MessageService {
+func NewMessageService(session *discordgo.Session) MessagesService {
 	return &messageService{
 		sessions: session,
 	}

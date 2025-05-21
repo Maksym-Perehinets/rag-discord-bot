@@ -1,4 +1,4 @@
-package bot
+package discord
 
 import "github.com/bwmarrin/discordgo"
 
@@ -17,7 +17,4 @@ type Bot interface {
 
 	// GetGuilds returns all guilds the bot is in
 	GetGuilds() []*discordgo.UserGuild
-
-	// RegisterHandler registers a handler for a specific event
-	RegisterHandler(handler interface{}, intents ...discordgo.Intent)
 }

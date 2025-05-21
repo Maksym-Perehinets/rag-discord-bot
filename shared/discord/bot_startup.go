@@ -1,4 +1,4 @@
-package bot
+package discord
 
 import (
 	"github.com/bwmarrin/discordgo"
@@ -39,7 +39,7 @@ func (b *bot) Run() func() {
 	}
 }
 
-func StartBot() *bot {
+func StartBot() Bot {
 	if botInstance != nil {
 		return botInstance
 	}

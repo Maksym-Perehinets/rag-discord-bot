@@ -7,7 +7,7 @@ type Bot interface {
 	Session() *discordgo.Session
 
 	// Run starts the bot and connects to Discord
-	Run()
+	Run() func()
 
 	// Close closes the discordgo session
 	Close()

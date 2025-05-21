@@ -8,6 +8,8 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+const DefaultMinSimilarity = 0.8
+
 type messageService struct {
 	db *gorm.DB
 }
@@ -18,31 +20,41 @@ func NewMessageService(db *gorm.DB) MessageService {
 	}
 }
 
-// Search performs a semantic search using the provided query and returns the results.
-func (s *messageService) Search(vector []float32, limit int, topN int) ([]database.Messages, error) {
+// Search performs a semantic search using the provided vector and returns the results.
+// no input validation is required, as the vector is already validated in the vectorizer service
+func (s *messageService) Search(vector pgvector.Vector, limit int, minSimilarityInput float64) ([]database.Messages, error) {
+
+	maxCosineDistance := DefaultMinSimilarity
+	if minSimilarityInput > 0.0 && minSimilarityInput <= 1.0 {
+		maxCosineDistance = minSimilarityInput
+	}
+
+	if maxCosineDistance < 0.0 {
+		maxCosineDistance = 0.0
+	} else if maxCosineDistance > 1.0 {
+		maxCosineDistance = 1.0
+	}
+
 	var results []database.Messages
-	// TODO REWRITE HOW topN WORKS FUCK again
-	// Ensure "vectorized_message" is your correct vector column name.
-	// Use pq.Array to wrap the []float64 slice.
-	// Use an explicit ::vector cast in the SQL.
-	query := s.db.Order(clause.OrderBy{
+
+	query := s.db.Model(&database.Messages{})
+
+	query = query.Where("vectorized_message <=> ?::vector <= ?", vector, maxCosineDistance)
+
+	query = query.Order(clause.OrderBy{
 		Expression: clause.Expr{
-			SQL:  "vectorized_message <=> ?::vector",
-			Vars: []interface{}{pgvector.NewVector(vector)}, // Pass pq.Array(vector)
+			SQL:  "vectorized_message <=> ?::vector ASC",
+			Vars: []interface{}{vector},
 		},
 	})
 
-	if topN > 0 {
-		query = query.Limit(topN)
+	if limit > 0 {
+		query = query.Limit(limit)
 	}
 
-	r := query.Find(&results)
-	if r.Error != nil {
-		return nil, fmt.Errorf("error searching messages: %w", r.Error)
-	}
-
-	if limit > 0 && len(results) > limit {
-		results = results[:limit]
+	// Execute the query
+	if err := query.Find(&results).Error; err != nil {
+		return nil, fmt.Errorf("error searching messages: %w", err)
 	}
 
 	return results, nil

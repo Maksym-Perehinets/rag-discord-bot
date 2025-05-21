@@ -1,11 +1,11 @@
-package messages
+package message
 
 import (
 	"github.com/Maksym-Perehinets/shared/database"
 	"github.com/bwmarrin/discordgo"
 )
 
-type MessageService interface {
+type MessagesService interface {
 	// GetMessage by ID
 	GetMessage(messagesInput database.Messages) (*discordgo.Message, error)
 
