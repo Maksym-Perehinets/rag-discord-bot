@@ -18,5 +18,14 @@ services:
       timeout: 5s
       retries: 5
 
+  message_parsing:
+    build:
+      context: ./message_parsing
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+
+
 volumes:
   postgres_data:
