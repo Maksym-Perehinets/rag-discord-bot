@@ -15,7 +15,7 @@ func (b *bot) GetChannels(guildID string) []*discordgo.Channel {
 	}
 
 	for _, element := range elements {
-		if element.Type == discordgo.ChannelTypeGuildVoice || element.Type == discordgo.ChannelTypeGuildStageVoice || element.Type == discordgo.ChannelTypeGuildCategory {
+		if element.Type == discordgo.ChannelTypeGuildStageVoice || element.Type == discordgo.ChannelTypeGuildCategory {
 			continue
 		}
 		channels = append(channels, element)

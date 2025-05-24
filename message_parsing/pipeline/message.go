@@ -33,6 +33,13 @@ func SetUpParsingPipeLine(db *gorm.DB) ([]discordgo.Intent, func(s *discordgo.Se
 					log.Printf("Could not vectorize message %s: %v", message.ID, err)
 				}
 
+				log.Printf("Vectorized message %s", message.Content)
+
+				if message.Content == "" {
+					log.Printf("Message %s is empty, skipping", message.ID)
+					continue
+				}
+
 				processedMessage <- &database.Messages{
 					MessageID:         message.ID,
 					ChannelID:         message.ChannelID,

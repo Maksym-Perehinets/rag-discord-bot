@@ -11,6 +11,7 @@ func CreateMessageListener(message chan *discordgo.MessageCreate) (
 ) {
 	intents = []discordgo.Intent{
 		discordgo.IntentGuildMessages,
+		discordgo.IntentsMessageContent,
 	}
 
 	messageListenerFunc = func(
