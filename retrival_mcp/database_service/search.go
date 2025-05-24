@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-const DefaultMinSimilarity = 0.8
+const DefaultMinSimilarity = 0.76543
 
 type messageService struct {
 	db *gorm.DB

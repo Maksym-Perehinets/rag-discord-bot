@@ -16,8 +16,9 @@ type searchService struct {
 }
 
 type TopMatch struct {
-	MessageID string `json:"message_id"`
-	Content   string `json:"content"`
+	MessageID string  `json:"message_id"`
+	Content   string  `json:"content"`
+	Score     float64 `json:"score,omitempty"` // Optional score field
 }
 
 func NewSearchService(db *gorm.DB, session *discordgo.Session) SemanticSearch {
