@@ -1,0 +1,85 @@
+@startuml
+title RAG Agent for Discord - Comprehensive Interaction Diagram (v7 - English)
+
+actor User
+' Other participants will be created automatically when first mentioned.
+
+group Scenario 1: User sends a new message (processed via CoreSync)
+    User -> DiscordPlatform: Sends message (text)
+    DiscordPlatform -> "CoreSync Module (Discord Message Processing and Sync)": Event: new message (raw_msg_data) ' raw_msg_data contains text, msg_id, etc.
+    activate "CoreSync Module (Discord Message Processing and Sync)"
+    "CoreSync Module (Discord Message Processing and Sync)" -> "Message Filter": Processes and filters (raw_msg_data.text)
+    "Message Filter" --> "CoreSync Module (Discord Message Processing and Sync)": Returns (filtered_text)
+    "CoreSync Module (Discord Message Processing and Sync)" -> "Text Vectorizer": Vectorizes (filtered_text)
+    "Text Vectorizer" --> "CoreSync Module (Discord Message Processing and Sync)": Returns (embedding)
+    "CoreSync Module (Discord Message Processing and Sync)" -> "Vector DB (pgVector)": Saves (raw_msg_data.id, embedding, filtered_text)
+    "Vector DB (pgVector)" --> "CoreSync Module (Discord Message Processing and Sync)": Returns (save_status) ' Optional, for internal logging
+    deactivate "CoreSync Module (Discord Message Processing and Sync)"
+end
+
+group Scenario 2: User deletes a message (processed via CoreSync)
+    User -> DiscordPlatform: Deletes message
+    DiscordPlatform -> "CoreSync Module (Discord Message Processing and Sync)": Event: message deletion (msg_id)
+    activate "CoreSync Module (Discord Message Processing and Sync)"
+    "CoreSync Module (Discord Message Processing and Sync)" -> "Vector DB (pgVector)": Deletes record (msg_id)
+    "Vector DB (pgVector)" --> "CoreSync Module (Discord Message Processing and Sync)": Returns (delete_status) ' Optional
+    deactivate "CoreSync Module (Discord Message Processing and Sync)"
+end
+
+group Scenario 3: User updates a message (processed via CoreSync)
+    User -> DiscordPlatform: Updates message (new_text)
+    DiscordPlatform -> "CoreSync Module (Discord Message Processing and Sync)": Event: message update (msg_id, new_text)
+    activate "CoreSync Module (Discord Message Processing and Sync)"
+    "CoreSync Module (Discord Message Processing and Sync)" -> "Text Vectorizer": Vectorizes (new_text)
+    "Text Vectorizer" --> "CoreSync Module (Discord Message Processing and Sync)": Returns (new_embedding)
+    "CoreSync Module (Discord Message Processing and Sync)" -> "Vector DB (pgVector)": Updates record (msg_id, new_embedding, new_text)
+    "Vector DB (pgVector)" --> "CoreSync Module (Discord Message Processing and Sync)": Returns (update_status) ' Optional
+    deactivate "CoreSync Module (Discord Message Processing and Sync)"
+end
+
+group Scenario 4: User sends a query to the AI Agent
+    User -> DiscordPlatform: Queries AI (natural_language_query)
+    DiscordPlatform -> "RAG Agent (For Queries and Tools)": Forwards query (user_query)
+    "RAG Agent (For Queries and Tools)" -> "Retriever MCP (Context Retrieval)": Searches context for (user_query)
+    "Retriever MCP (Context Retrieval)" -> "Vector DB (pgVector)": Finds similar (query_embedding)
+    "Vector DB (pgVector)" --> "Retriever MCP (Context Retrieval)": Returns (matched_messages)
+    "Retriever MCP (Context Retrieval)" --> "RAG Agent (For Queries and Tools)": Returns (initial_context)
+
+    loop While context is incomplete (up to 10 times)
+        ' RAG Agent internal context completeness analysis
+        alt If chat history is needed
+            "RAG Agent (For Queries and Tools)" -> "Discord MCP (Different discord interaction)": Requests chat history (orig_query_id, current_context)
+            "Discord MCP (Different discord interaction)" --> "RAG Agent (For Queries and Tools)": Returns (chat_history)
+        else If additional semantic search is needed
+            "RAG Agent (For Queries and Tools)" -> "Retriever MCP (Context Retrieval)": Requests add. context (previous_matches, refined_query)
+            "Retriever MCP (Context Retrieval)" -> "Vector DB (pgVector)": Searches for more similar (refined_query_emb, exclusions)
+            "Vector DB (pgVector)" --> "Retriever MCP (Context Retrieval)": Returns (additional_matches)
+            "Retriever MCP (Context Retrieval)" --> "RAG Agent (For Queries and Tools)": Returns (extended_context)
+        end
+    end
+    ' RAG Agent internal response generation based on collected context
+    "RAG Agent (For Queries and Tools)" -> DiscordPlatform: Sends response (generated_response)
+    DiscordPlatform -> User: Shows response
+end
+
+group Scenario 5: AI Agent uses external tools (example: Grafana)
+    User -> DiscordPlatform: Sends query (query_1)
+    DiscordPlatform -> "RAG Agent (For Queries and Tools)": Forwards query (query_1)
+    "RAG Agent (For Queries and Tools)" -> "Retriever MCP (Context Retrieval)": Searches context for (query_1)
+    "Retriever MCP (Context Retrieval)" -> "Vector DB (pgVector)": Searches content (query_1_emb)
+    "Vector DB (pgVector)" --> "Retriever MCP (Context Retrieval)": Returns (found_content)
+    "Retriever MCP (Context Retrieval)" --> "RAG Agent (For Queries and Tools)": Returns (processed_content) (may contain "alert")
+    ' RAG Agent internal content analysis (e.g., finds "alert_X")
+    "RAG Agent (For Queries and Tools)" -> DiscordPlatform: Sends intermediate response (info_about_alert_X, clarification_request)
+    DiscordPlatform -> User: Shows intermediate response
+
+    User -> DiscordPlatform: Sends query for "alert_X" details (alert_X_details_query)
+    DiscordPlatform -> "RAG Agent (For Queries and Tools)": Forwards details query (alert_X_details_query)
+    ' RAG Agent internal decision to use "Grafana Agent (Tool)"
+    "RAG Agent (For Queries and Tools)" -> "Grafana Agent (Tool)": Requests Grafana data ("alert_X", parameters)
+    "Grafana Agent (Tool)" --> "RAG Agent (For Queries and Tools)": Returns (data_from_Grafana)
+    ' RAG Agent internal processing of Grafana data and response generation
+    "RAG Agent (For Queries and Tools)" -> DiscordPlatform: Sends response with Grafana data (response_with_Grafana_data)
+    DiscordPlatform -> User: Shows detailed response
+end
+@enduml
