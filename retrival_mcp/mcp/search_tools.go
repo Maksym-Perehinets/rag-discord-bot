@@ -15,10 +15,10 @@ const (
 
 func AddSearchTool(search search.SemanticSearch) (mcp.Tool, server.ToolHandlerFunc) {
 	tool := mcp.NewTool("semantic_search",
-		mcp.WithDescription("Semantic search for similar messages in the database"),
+		mcp.WithDescription("This tool performs a semantic search in the database using the provided query."),
 		mcp.WithString("query",
 			mcp.Required(),
-			mcp.Description("Formated query from the user request. This is the text to search for in the database."),
+			mcp.Description("This should be on or more words that you want to search for in the database. They must be generalised from user request and not contain any specific details. For example, if user asks 'What is the capital of France?', the query should be 'capital France'."),
 		),
 	)
 
