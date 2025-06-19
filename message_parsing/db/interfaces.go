@@ -29,7 +29,4 @@ type MessageService interface {
 
 	// UpdateMessage updates a message in the database.
 	UpdateMessage(message *Messages) error
-
-	// GetLikeliestMessages retrieves the most similar messages to a given vectorized message.
-	//GetLikeliestMessages (vectorizedMessage []float32, limit int) ([]*Messages, error)
 }

@@ -134,7 +134,7 @@ func SetUpEditPipeLine(db *gorm.DB) ([]discordgo.Intent, func(s *discordgo.Sessi
 				}
 				err := messageService.UpdateMessage(message)
 				if err != nil {
-					log.Printf("Could not update message %s: %v", message.ID, err)
+					log.Printf("Could not update message %v: %v", message.ID, err)
 				}
 			}
 		}
