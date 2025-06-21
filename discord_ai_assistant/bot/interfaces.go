@@ -20,4 +20,6 @@ type Bot interface {
 
 	// RegisterHandler registers a handler for a specific event
 	RegisterHandler(handler interface{}, intents ...discordgo.Intent)
+
+	SetUpSlashCommands()
 }

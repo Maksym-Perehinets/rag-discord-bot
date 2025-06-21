@@ -2,21 +2,20 @@ FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
+COPY shared/ ./shared/
 
-RUN go mod download
-RUN go mod verify
+COPY retrival_mcp/ ./retrival_mcp/
 
-COPY . .
+WORKDIR /app/retrival_mcp/
 
-RUN go build -v -ldflags="-w -s" -o /app/message_parsing_executable .
+RUN go build -v -ldflags="-w -s" -o /app/retrival_mcp .
 
 FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /app/message_parsing_executable ./message_parsing
+COPY --from=builder /app/retrival_mcp .
 
-RUN chmod +x ./message_parsing
+RUN chmod +x ./retrival_mcp
 
-ENTRYPOINT ["./message_parsing"]
+ENTRYPOINT ["./retrival_mcp"]

@@ -11,7 +11,8 @@ import (
 func main() {
 	botD := bot.StartBot()
 	dbConn := database.New().DB()
-	channels := botD.GetChannels(botD.GetGuilds()[0].ID)
+	//channels := botD.GetChannels(botD.GetGuilds()[0].ID)
+	channels := botD.GetChannels("1350120716497846374")
 	messageService := database.NewMessageService(dbConn)
 
 	bootstrap(botD.Session(), channels, messageService)
