@@ -20,26 +20,29 @@ class LLMClient:
         )
 
     async def process_query(self, query: list[dict[str, str]]) -> str:
-        """Process a query using an LLM and available tools"""
-
         messages = query
+        max_iterations = 10
 
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            tools=self.tools,
-            tool_choice="auto",
-        )
+        for i in range(max_iterations):
+            logger.info(f"--- Starting LLM Iteration {i + 1} ---")
 
-        response_message = response.choices[0].message
-        logger.info(f"Received response from LLM: {response_message}")
-        # messages.append({"role": "assistant", "content": str(response_message)})
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                tools=self.tools,
+                tool_choice="auto",
+            )
 
-        messages.append(response_message.model_dump())
+            response_message = response.choices[0].message
+            logger.info(f"Received response from LLM: {response_message}")
 
-        final_text_parts = []
+            messages.append(response_message.model_dump(exclude_unset=True))
 
-        if response_message.tool_calls:
+            if not response_message.tool_calls:
+                logger.info("LLM provided a final answer. Ending iterations.")
+                return response_message.content or "The agent did not provide a final text response."
+
+            logger.info("LLM requested tool calls. Executing now.")
             for tool_call in response_message.tool_calls:
                 tool_name = tool_call.function.name
 
@@ -52,9 +55,7 @@ class LLMClient:
 
                 result = await self.tools_executor(tool_name, tool_args)
 
-                tool_content = "Tool returned no content."
-                if result.content and hasattr(result.content[0], 'text'):
-                    tool_content = result.content[0].text
+                tool_content = json.dumps(result, default=str)
 
                 logger.info(f"Tool `{tool_name}` result: {tool_content}")
 
@@ -65,18 +66,8 @@ class LLMClient:
                     "content": tool_content,
                 })
 
-            second_response = await self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                tools=self.tools,
-                tool_choice="auto",
-            )
-            final_text_parts.append(second_response.choices[0].message.content)
-        else:
-            final_text_parts.append(response_message.content)
-
-        return "".join(filter(None, final_text_parts))
-
+        logger.warning(f"Reached max iterations ({max_iterations}) without a final text response.")
+        return "The agent could not produce a final answer within the allowed number of iterations."
 
     async def chat_loop(self):
         """Local test only for now=)"""

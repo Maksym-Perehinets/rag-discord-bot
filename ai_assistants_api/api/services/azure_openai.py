@@ -12,7 +12,7 @@ async def request_to_llm(ai_client: LLMClient, query: list[dict[str, str]]) -> d
     try:
         response = await ai_client.process_query(query)
         logger.info(f"LLM response: {response}")
-        return {"response": response}
+        return {"role": "assistant", "content": response}
     except Exception as e:
         logger.error(f"Error processing query with LLM: {e}")
         return {"error": "Error processing query with LLM."}
