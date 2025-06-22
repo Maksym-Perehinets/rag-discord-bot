@@ -7,5 +7,5 @@ example of request
     {"role": "system", "content": "use tools to provide context from discord"},
     {"role": "user", "content": "Find and summarize discussion regarding quantum computing"}
   ]
-}
+}  
 ```
