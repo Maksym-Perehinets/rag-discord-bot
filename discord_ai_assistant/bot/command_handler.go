@@ -11,11 +11,11 @@ func AddCommandHandlerForQuery(
 	ctx context.Context,
 	commandName string,
 	logicHandlerFunction func(
-	ctx context.Context,
-	request ai_client.ChatRequest,
-) (
-	*ai_client.ChatResponse,
-	error),
+		ctx context.Context,
+		request ai_client.ChatRequest,
+	) (
+		*ai_client.ChatResponse,
+		error),
 ) map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	handlerFunction := func(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -74,9 +74,11 @@ func AddCommandHandlerForQuery(
 			log.Printf("Failed to create thread for response: %v", err)
 		}
 
-		_, err = s.ChannelMessageSend(th.ID, responseContent)
-		if err != nil {
-			log.Printf("Failed to send message in thread: %v", err)
+		for _, chunk := range splitStringIfNeeded(responseContent) {
+			_, err = s.ChannelMessageSend(th.ID, chunk)
+			if err != nil {
+				log.Printf("Failed to send message in thread: %v", err)
+			}
 		}
 
 		//_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{

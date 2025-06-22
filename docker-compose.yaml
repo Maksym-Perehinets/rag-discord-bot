@@ -50,5 +50,17 @@ services:
     depends_on:
       - rag_mcp_server
 
+  discord_ai_assistant:
+    build:
+      context: ./discord_ai_assistant
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - ai_assistant_api
+
 volumes:
   postgres_data:
