@@ -28,8 +28,8 @@ services:
 
   rag_mcp_server:
     build:
-      context: . # Use the root directory as the context
-      dockerfile: ./retrival_mcp/Dockerfile # Specify the path to the Dockerfile
+      context: .
+      dockerfile: ./retrival_mcp/Dockerfile
     restart: unless-stopped
     env_file:
       - .env
@@ -38,9 +38,9 @@ services:
     depends_on:
       - db
 
-  ai_assistant:
+  ai_assistant_api:
     build:
-      context: ./ai_assistants_server
+      context: ./ai_assistants_api
       dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
@@ -48,7 +48,7 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      - rag_mcp_server
 
 volumes:
   postgres_data:
