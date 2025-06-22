@@ -18,7 +18,7 @@ async def process_query(request: CommonRequest, llm_client: LLMClient = Depends(
     response = await azure_openai.request_to_llm(llm_client, request.query)
 
     return CommonResponse(
-        userid=request.userid,
+        user_id=request.user_id,
         message_id=request.message_id,
         query_response=response
     )
