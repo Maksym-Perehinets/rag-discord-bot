@@ -31,16 +31,10 @@ func NewMCPService(opts ...server.ServerOption) Service {
 }
 
 func (m *mcpService) Start() {
-	// TODO migrate to Server-Side Streamable HTTP transport as soon as it's released
-	sse := server.NewSSEServer(
-		m.s,
-		server.WithBaseURL("http://localhost:8080"),
-		server.WithUseFullURLForMessageEndpoint(true),
-	)
-
 	log.Printf("HTTP server listening on :8080")
-	if err := sse.Start(":8080"); err != nil {
-		log.Fatalf("Server error: %v", err)
+	httpServer := server.NewStreamableHTTPServer(m.s)
+	if err := httpServer.Start(":8080"); err != nil {
+		log.Fatalf("Failed to start HTTP server: %v", err)
 	}
 }
 
